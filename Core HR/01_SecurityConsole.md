@@ -1,7 +1,5 @@
 # Security Console, Users & Roles — Oracle Fusion Core HR
 
-Oct 24, 2026 · @Swapna
-
 ## 1. The big picture: how security works in Fusion HCM
 
 In one line: **a user can only do something if a role gives them the action (function security) AND a security profile gives them the data (data security).** Remember this. Almost every tricky interview question comes back to it.
