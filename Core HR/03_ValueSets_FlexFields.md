@@ -271,7 +271,7 @@ All three let you add fields without code. The difference is **what kind of extr
 
 **How to decide in a project:** a handful of single-value fields → DFF. Many fields, a logical section of its own, or repeating rows → EFF. The client is designing the *code* of jobs/grades/costing → KFF.
 
-Common to all three: you configure them and then **deploy** before anyone sees them.
+Common to all three: you configure them and then **deploy** before anyone sees them. Section 10 walks through an EFF hands-on, including single-row vs multi-row behaviour.
 
 ## 8. DFF hands-on — Country & City on Location
 
@@ -380,7 +380,110 @@ If you attach a value set to the context segment, it must be **Independent or Ta
 5. Create context `OFFICE` → segment *Seating Capacity* on `ATTRIBUTE3` again — same column, different context. That's legal and normal.
 6. Save and Close → **Deploy Flexfield** → sign out/in → open a location, choose Factory, then Office, and watch the fields swap.
 
-## 10. Behind the scenes — what happens to the tables
+## 10. EFF hands-on — Extra Information & Legislative Information on Locations
+
+The **Extra Information** and **Legislative Information** regions you see on a location are two EFFs. Their data does **not** go into `PER_LOCATION_DETAILS_F`. It goes into separate tables that point back to the location through `LOCATION_ID` — that's the "saved in another table with reference" in your notes.
+
+### The two Location EFFs
+
+| Region on the Location page | EFF code | Category | Stored in | Key columns |
+| --- | --- | --- | --- | --- |
+| Extra Information | `PER_LOCATION_INFORMATION_EFF` | `HCM_LOC` | `PER_LOCATION_EXTRA_INFO_F` | `LOCATION_ID` (link), `INFORMATION_TYPE` / `LEI_INFORMATION_CATEGORY` (which context), `LEI_INFORMATION1…` (segments) |
+| Legislative Information | `PER_LOCATION_LEG_EFF` | `HCM_LOC_LEG` | `PER_LOCATION_LEG_F` | `LOCATION_ID` (link), `LLE_INFORMATION_CATEGORY` (which context), `SEQUENCE_NUMBER` (tells multi-row rows apart), `LLE_INFORMATION1…` (segments) |
+
+Sources: Oracle's [Location HDL guide](https://docs.oracle.com/en/cloud/saas/human-resources/fahbo/guidelines-for-loading-locations.html), [PER_LOCATION_EXTRA_INFO_F](https://docs.oracle.com/en/cloud/saas/human-resources/24b/oedmh/perlocationextrainfof-26433.html) and [PER_LOCATION_LEG_F](https://docs.oracle.com/en/cloud/saas/human-resources/25a/oedmh/perlocationlegf-12077.html) table references.
+
+**Which one do I use?**
+
+- **Extra Information** → company-specific facts any location might need (facility details, safety certificates, site contacts).
+- **Legislative Information** → country-specific or statutory facts. Its contexts are tied to a legislation (country), so a context built for India appears only on locations where that legislation applies. Oracle itself delivers contexts here (e.g. Canadian workers' compensation overrides).
+
+Both tables end in `_F`, so EFF rows are **date-effective** just like the location itself.
+
+### EFF vocabulary (different from DFF!)
+
+```
+EFF  (PER_LOCATION_INFORMATION_EFF)
+ └─ Category            HCM_LOC          → "which contexts are allowed for locations"
+     └─ Page            Site Details     → a tab/section on the UI that groups contexts
+         └─ Context     Fire Safety Certificates   (single row OR multiple rows)
+             └─ Segment Certificate Type, Certificate No., Expiry Date
+```
+
+- **Context** = a named group of fields (Oracle also calls it an *attribute group*). In an EFF, **every segment belongs to a context** — there are no global segments.
+- **Category** = decides which contexts are valid for the business object. A context that isn't associated with the category never shows.
+- **Page** = how contexts are arranged on screen.
+- **Usage** = which screen/flow the context or page is used on.
+
+### Single row vs multiple rows — the behaviour
+
+When you create an EFF context, you pick its **Behavior**: *Single Row* or *Multiple Rows*. Oracle's rule: single-row contexts show as a form; multi-row contexts show as a table where users can enter a list ([Oracle docs](https://docs.oracle.com/cd/E29505_01/fusionapps.1111/e15524/flex_ext.htm)).
+
+| | Single Row | Multiple Rows |
+| --- | --- | --- |
+| Question it answers | "What is *the* value for this location?" | "What is the *list* of things for this location?" |
+| How the user sees it | A form: label + field, like a DFF | A table: each segment is a column; Add/Delete row buttons |
+| Rows stored per location per context (per date) | Exactly one | Zero, one or many |
+| Location example | Site Facility Details: Building Owner, Number of Floors, Lease End Date | Fire Safety Certificates: Type, Number, Issue Date, Expiry Date — one row per certificate |
+| How rows are told apart | Not needed — only one | A sequence number per row (`SEQUENCE_NUMBER` on the legislative table; HDL asks you for one per row) |
+| In a BIP report | One row per location — easy joins | Many rows per location — joining it directly multiplies your location rows |
+
+**Rule of thumb:** if the honest answer to "can there be more than one?" is *yes, ever*, make it Multiple Rows. Deciding later is painful, because data entered as one shape doesn't convert to the other — treat the choice as permanent once data exists.
+
+### Practical: build both kinds on Location Extra Information
+
+**Before you start:** create any value sets you need, e.g. `XX_FIRE_CERT_TYPE_VS` (Independent: `NOC`, `AUDIT`, `DRILL`).
+
+1. **Setup and Maintenance → Manage Extensible Flexfields.**
+2. Search Flexfield Code `PER_LOCATION_INFORMATION_EFF` → select → **Edit**.
+3. **Manage Contexts → Create** the single-row context:
+    - Display Name *Site Facility Details*, Code `XX_SITE_FACILITY`, API name auto-filled.
+    - **Behavior: Single Row.** Enabled.
+    - **Context Usages:** add the location usage so it can appear on location pages. Leave view/edit privileges blank unless only certain roles should see or edit it.
+    - **Context Sensitive Segments → Create:** *Building Owner* (Character, Format Only value set), *Number of Floors* (Number), *Lease End Date* (Date). Pick a table column of the matching data type for each.
+    - Save and Close.
+4. **Create** the multi-row context the same way:
+    - Display Name *Fire Safety Certificates*, Code `XX_FIRE_CERT`.
+    - **Behavior: Multiple Rows.**
+    - Segments: *Certificate Type* (`XX_FIRE_CERT_TYPE_VS`), *Certificate Number* (Character), *Issue Date* (Date), *Expiry Date* (Date).
+    - Save and Close.
+5. Back on the Edit Extensible Flexfield page, select **category `HCM_LOC`**. In its **Associated Contexts**, add both contexts. *Skipping this is the #1 reason an EFF "doesn't show up".*
+6. Under the same category, **Pages → Create** a page, e.g. *Site Details* (code `XX_SITE_DETAILS`), and add both contexts to it. Set the page's usage to the location page.
+7. Save and Close → **Deploy Flexfield** → wait for success → **sign out and sign in**.
+8. Test: **My Client Groups → Workforce Structures → Locations** → edit a location → **Extra Information**.
+    - *Site Facility Details* shows as a form. Fill it once.
+    - *Fire Safety Certificates* shows as a table. Click Add three times for three certificates; delete one; save. Each row is its own record.
+
+**Legislative Information** works the same way on `PER_LOCATION_LEG_EFF`, category `HCM_LOC_LEG`. The difference: tie the context to the legislation it belongs to. Test on a location whose country matches — on other countries' locations it won't appear.
+
+### Behind the scenes
+
+```sql
+-- Multi-row EFF: expect several rows per location
+SELECT lei.location_id
+     , lei.information_type      AS context_code   -- e.g. XX_FIRE_CERT
+     , lei.lei_information1      AS cert_type      -- column depends on what you mapped
+     , lei.effective_start_date
+FROM   per_location_extra_info_f lei
+WHERE  lei.information_type = 'XX_FIRE_CERT'
+AND    TRUNC(SYSDATE) BETWEEN lei.effective_start_date AND lei.effective_end_date
+```
+
+- Each context row is one row in the EFF table, with `LOCATION_ID` pointing back to the location. Single row = one row per location per context; multi row = many.
+- Because segment columns are reused across contexts (just like DFF context-sensitive segments), always filter on the context column before reading `LEI_INFORMATION1`.
+- **HDL:** these load as child records of the Location object — `LocationExtraInfo` (Extra Information, `EFF_CATEGORY_CODE` = `HCM_LOC`) and `LocationLegislative` (Legislative Information, `HCM_LOC_LEG`), with one line per row for multi-row contexts ([Oracle HDL guide](https://docs.oracle.com/en/cloud/saas/human-resources/fahbo/guidelines-for-loading-locations.html)).
+
+### EFF vs DFF context — don't mix them up
+
+| | DFF context | EFF context |
+| --- | --- | --- |
+| How many active per record | One (picked by the context segment) | Many at once — every associated context shows |
+| Global segments | Yes | No — all segments are in a context |
+| Multiple rows | No | Yes, if the context is Multiple Rows |
+| Where data lives | Same table (`ATTRIBUTE*`) | Separate table linked by ID |
+| Extra setup | Context segment | Category association + page |
+
+## 11. Behind the scenes — what happens to the tables
 
 Two kinds of data are involved, and mixing them up is the #1 internals mistake: **setup metadata** (what fields exist and their rules) and **transaction data** (what users actually typed).
 
@@ -430,7 +533,7 @@ WHERE  TRUNC(SYSDATE) BETWEEN pld.effective_start_date AND pld.effective_end_dat
 
 Note `attr3_raw`: in a report you must `CASE` on `attribute_category` before labelling `ATTRIBUTE3`, because it means Seating Capacity for OFFICE and Safety Officer for FACTORY. To show descriptions instead of codes, join to the value set values (many BIP developers use the `FND_FLEX_VALUES_VL` / `FND_FLEX_VALUE_SETS` views — confirm the names in your pod).
 
-## 11. Edge cases you'll actually hit on a project
+## 12. Edge cases you'll actually hit on a project
 
 Most flexfield problems come from **changing something after data already exists** or **forgetting a step after deploy**. Read this table twice; nearly every row is also an interview question.
 
@@ -454,8 +557,13 @@ Most flexfield problems come from **changing something after data already exists
 | Field missing in HDL template | Business object not refreshed | Data Exchange → View Business Objects → refresh |
 | Works in DEV, missing in TEST | Setup is per pod | Migrate via configuration package and deploy in the target pod |
 | Context value too long | Context codes must fit the context column (30 on Location) | Keep context codes short |
+| EFF deployed but nothing shows | Context not associated with the category, not added to a page, or no usage | Category → Associated Contexts; add to a page; check usages; redeploy |
+| Built a context as Single Row, client now needs a list | Shape can't be converted once data exists | Create a new Multiple Rows context, migrate data via HDL, retire the old one |
+| Legislative EFF context missing on a location | Location's country/legislation doesn't match the context | Test on a location of the right country |
+| BIP report shows each location several times | Joined a multi-row EFF table directly | Aggregate, pick one row (e.g. latest), or report the EFF as its own detail block |
+| EFF section visible but read-only for some users | Context usage privileges restrict view/edit | Check view/edit privileges on the context usage |
 
-## 12. Interview questions — with answers
+## 13. Interview questions — with answers
 
 Answer in three beats: **what it is → why it exists → one real example.** Cover each answer before reading it.
 
@@ -542,7 +650,24 @@ Not a DFF — a DFF holds one value per field per record. Use a Person EFF with 
 **Q25. Setup works in DEV but not in TEST. Why?**
 Configuration is per environment. Migrate it (configuration package via Functional Setup Manager) and deploy the flexfield in TEST.
 
-## 13. One-page revision cheat sheet
+### EFF-specific
+
+**Q26. What's the difference between a single-row and a multi-row EFF context?**
+Single row stores one set of values per record and shows as a form. Multi row stores a list and shows as a table with Add/Delete — e.g. one row per fire safety certificate.
+
+**Q27. Where is Location Extra Information stored, and how is it linked to the location?**
+In `PER_LOCATION_EXTRA_INFO_F`, one row per context row, linked by `LOCATION_ID`; the context is in `INFORMATION_TYPE`. Legislative Information goes to `PER_LOCATION_LEG_F`.
+
+**Q28. You created and deployed an EFF context but users can't see it. What did you miss?**
+Usually the category association (`HCM_LOC` → Associated Contexts) or adding it to a page. Then check usages/privileges, redeploy and re-login.
+
+**Q29. Extra Information vs Legislative Information on a location?**
+Extra Information holds company-specific data for any location. Legislative Information holds country-specific/statutory data; its contexts appear only for the matching legislation.
+
+**Q30. Can an EFF have global segments like a DFF?**
+No. In an EFF every segment belongs to a context. Many contexts can show at once, unlike a DFF where one context is active per record.
+
+## 14. One-page revision cheat sheet
 
 - **Value set** = the rule for a field. **Flexfield** = the field(s). **Segment** = one field. **Deploy** = make it live. **Re-login** = see it.
 - **5 types you create:** Format Only (shape rules), Independent (fixed list), Dependent (list filtered by a parent field), Subset (slice of an independent list), Table (live from a Fusion table).
@@ -558,5 +683,8 @@ Configuration is per environment. Migrate it (configuration package via Function
 - **Context value set:** only Independent or Table, Character.
 - **Can't create DFFs in SaaS** — Oracle registers, we configure.
 - **Location DFF:** `PER_LOCATIONS_DF` on `PER_LOCATION_DETAILS_F`.
+- **Location EFFs:** Extra Information `PER_LOCATION_INFORMATION_EFF` (category `HCM_LOC`, table `PER_LOCATION_EXTRA_INFO_F`); Legislative Information `PER_LOCATION_LEG_EFF` (category `HCM_LOC_LEG`, table `PER_LOCATION_LEG_F`). Linked by `LOCATION_ID`.
+- **EFF single row** = form, one row. **Multiple rows** = table, a list. Choose up front; can't convert once data exists.
+- **EFF checklist:** context → segments → associate with category → add to page → usage → deploy → re-login.
 - **Value set tables:** `FND_VS_VALUE_SETS`, `FND_VS_VALUES_B`, `FND_VS_VALUES_TL`.
 - **After deploy:** OTBI needs BI Enabled + the TBI extensions import job; HDL needs the business object refreshed; other pods need migration + deploy.
