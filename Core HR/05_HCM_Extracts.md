@@ -1,7 +1,5 @@
 # HCM Extracts — Study Guide
 
-*As of Nov 2, 2026*
-
 ## 1. What HCM Extracts are
 
 HCM Extracts is Oracle Fusion HCM's built-in tool for pulling HCM data **out** of Fusion in bulk, shaping it, and delivering it to another system or person. Think of it as the outbound twin of HCM Data Loader (HDL): HDL brings data in, HCM Extracts sends data out.
