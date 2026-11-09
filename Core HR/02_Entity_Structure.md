@@ -551,3 +551,76 @@ Checked against Oracle documentation as of the date above:
 - [Manage Legal Entities (HCM information, PSU to LDG)](https://docs.oracle.com/en/cloud/saas/human-resources/24b/fapid/manage-legal-entities.html)
 - [Examples of HCM Organization Models for Payroll](https://docs.oracle.com/en/cloud/saas/human-resources/faipb/examples-of-hcm-organization-models-for-payroll.html)
 - [Employment model change rules (apps2fusion)](https://apps2fusion.com/old/oracle-fusion-online-training/fusion-applications/oracle-fusion-hcm/677-employment-model-in-oracle-fusion-hcm)
+
+## Definitions
+Enterprise:
+
+It is the top most organization in oracle fusion hcm which represents the entire business group and provides a structure under which legal employer, business units, departments and other workforce structures are created. 
+
+- Normally there will be one enterprise per fusion instance.
+- Person Number Generation: Manual, Automatic prior to submission or automatic upon final save. It is done by sequence
+- Employment Model: The default for the whole company
+
+Division:
+
+It is a organizational unit which represents the major segment of enterprise by grouping product line, line of business, brand and geography. It allows the management to operate that part of the business separately and evaluate it’s operational and financial measurements against specific target. Divisions are optional and they are date-effective which means you can track it’s history.
+
+Legal Entities:
+
+ These are the real registered companies, so to operate in a country you need to make your company registered so that your company can sign contracts and pay taxes.
+
+Under legal entity we sub things that are:
+
+- Legal Employer: The one who hires the employees. Suppose if you join in Nike Bangalore then the legal employer is Nike Bangalore
+- PSU: This entity is responsible for paying the employees, filing pf and income tax.
+- TRU: It is a small unit of tax registration that handles all tax related stuffs. TRU always sits under PSU
+- Legislative Data Group (LDG): The country rulebook for payroll. So India has rupees and indian rules, US has dollars and us rules, etc.
+
+It is very important that you should have a legal postal address before configuring the legal entity.
+
+One Legal Entity can be both legal employer and a psu. Each PSU is linked to exactly one LDG. (Why?)
+
+While you create Legal Entity, a legal reporting unit is created along with it.
+
+Business Units:
+
+The team that run a piece of the business. They mostly control two things: which reference data people see (job, departments, locations) and security. 
+
+**Business Units are not date effective and therefore you make it active or inactive
+
+Reference Data Set (RDS):
+
+A RDS is a way to share or restrict shared information between business units.
+
+So there some types of sets in the RDS. 
+
+- Enterprise Set : A reference data that is intended to be shared across the enterprise instead of just business unit.
+- COMMON Set (0) : Shared across the business unit.
+- BU Specific Set : Reference data is restricted to particular business unit.
+
+Department - A particular team within an organization such as IT department, HR department
+
+- Date-effective and set enabled
+
+Location: Where does the employee works, denotes the physical or virtual workspace address.
+
+- Date-effective and set enabled
+
+A location can be used by multiple departments and business units depending on it’s configuration and reference data sharing.
+
+Job: It describes the kind of job an employee performs, example java developer, ai engineer
+
+- Date-effective and set enabled
+- Job has a Job family, job function and a list of valid grades
+
+Position: It is a particular level in an organization structure. Two positions can have the same Job!
+
+- Date effective only
+- Hiring status: Proposed, Approved, Frozen
+- What is position Synchronization
+
+Grade: It denotes the pay level of an employee and each grade has a certain salary range.
+
+- Date-effective and set enabled
+- It has Grade rate which means salary range for a grade
+- Grade Ladder: an ordered list of grades for progression
