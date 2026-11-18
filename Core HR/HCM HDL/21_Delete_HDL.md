@@ -368,5 +368,3 @@ DELETE|Salary|1014|2016/01/01
 <details><summary>Answer</summary>No, Assignment can't be deleted, and individual splits can't be deleted. Re-supply the assignment from the last correct date with `SET PURGE_FUTURE_CHANGES Y` (Replace mode) so the future split is replaced, supplying full values. Watch for child records (supervisor) on those dates.</details>
 
 ---
-
-*References: Oracle Help Center: HCM Data Loader guide ("Data Deletion Using HCM Data Loader", "The DELETE Instruction", "Examples of Changing First Effective Start Date and Last Effective End Date", "Overview of Loading Date-Effective Objects"); HCM Business Objects guide ("Guidelines for Deleting Worker Components", "Example of Deleting an Element Entry", "Example of How To End Date a Recurring Element Entry", "Delete a Salary Using HCM Data Loader", "Guidelines for Deleting Salary Bases"); Oracle tutorial "Making Date-Effective Changes with HDL"; "How You Delete Physical Records from Date-Effective Objects" (UI behaviour). Field notes from Oracle Cloud Customer Connect discussions.*
