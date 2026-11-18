@@ -620,7 +620,7 @@ Position: It is a particular level in an organization structure. Two positions c
 - What is position Synchronization
 
 Grade: It denotes the pay level of an employee and each grade has a certain salary range.
-
+ 
 - Date-effective and set enabled
 - It has Grade rate which means salary range for a grade
 - Grade Ladder: an ordered list of grades for progression
