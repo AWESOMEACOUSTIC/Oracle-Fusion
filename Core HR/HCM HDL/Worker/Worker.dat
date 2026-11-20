@@ -1,0 +1,27 @@
+METADATA|Worker|SourceSystemOwner|SourceSystemId|EffectiveStartDate|EffectiveEndDate|PersonNumber|StartDate|DateOfBirth|ActionCode
+MERGE|Worker|AKP_LAB|AKP_E1001|2026/01/05||AKP1001|2026/01/05|1998/04/12|HIRE
+MERGE|Worker|AKP_LAB|AKP_E1002|2026/02/02||AKP1002|2026/02/02|1999/11/23|HIRE
+
+METADATA|PersonName|SourceSystemOwner|SourceSystemId|PersonId(SourceSystemId)|EffectiveStartDate|EffectiveEndDate|LegislationCode|NameType|FirstName|LastName
+MERGE|PersonName|AKP_LAB|AKP_E1001_NAME|AKP_E1001|2026/01/05||IN|GLOBAL|Ravi|Sharma
+MERGE|PersonName|AKP_LAB|AKP_E1002_NAME|AKP_E1002|2026/02/02||IN|GLOBAL|Priya|Iyer
+
+METADATA|PersonLegislativeData|SourceSystemOwner|SourceSystemId|PersonId(SourceSystemId)|EffectiveStartDate|EffectiveEndDate|LegislationCode|Sex|MaritalStatus
+MERGE|PersonLegislativeData|AKP_LAB|AKP_E1001_LEG|AKP_E1001|2026/01/05||IN|M|S
+MERGE|PersonLegislativeData|AKP_LAB|AKP_E1002_LEG|AKP_E1002|2026/02/02||IN|F|S
+
+METADATA|PersonEmail|SourceSystemOwner|SourceSystemId|PersonId(SourceSystemId)|DateFrom|EmailType|EmailAddress|PrimaryFlag
+MERGE|PersonEmail|AKP_LAB|AKP_E1001_EML_W1|AKP_E1001|2026/01/05|W1|ravi.sharma@example.com|Y
+MERGE|PersonEmail|AKP_LAB|AKP_E1002_EML_W1|AKP_E1002|2026/02/02|W1|priya.iyer@example.com|Y
+
+METADATA|WorkRelationship|SourceSystemOwner|SourceSystemId|PersonId(SourceSystemId)|LegalEmployerName|DateStart|WorkerType|PrimaryFlag|ActionCode
+MERGE|WorkRelationship|AKP_LAB|AKP_E1001_WR|AKP_E1001|<Your Legal Employer>|2026/01/05|E|Y|HIRE
+MERGE|WorkRelationship|AKP_LAB|AKP_E1002_WR|AKP_E1002|<Your Legal Employer>|2026/02/02|E|Y|HIRE
+
+METADATA|WorkTerms|SourceSystemOwner|SourceSystemId|PeriodOfServiceId(SourceSystemId)|ActionCode|EffectiveStartDate|EffectiveEndDate|EffectiveSequence|EffectiveLatestChange|AssignmentName|AssignmentNumber|PrimaryWorkTermsFlag|BusinessUnitShortCode
+MERGE|WorkTerms|AKP_LAB|AKP_E1001_WT|AKP_E1001_WR|HIRE|2026/01/05||1|Y|ET-AKP1001|ET-AKP1001|Y|<Your BU>
+MERGE|WorkTerms|AKP_LAB|AKP_E1002_WT|AKP_E1002_WR|HIRE|2026/02/02||1|Y|ET-AKP1002|ET-AKP1002|Y|<Your BU>
+
+METADATA|Assignment|SourceSystemOwner|SourceSystemId|WorkTermsAssignmentId(SourceSystemId)|ActionCode|EffectiveStartDate|EffectiveEndDate|EffectiveSequence|EffectiveLatestChange|AssignmentName|AssignmentNumber|AssignmentStatusTypeCode|PersonTypeCode|BusinessUnitShortCode|PrimaryAssignmentFlag|JobId(SourceSystemId)|LocationId(SourceSystemId)|DepartmentName
+MERGE|Assignment|AKP_LAB|AKP_E1001_ASG|AKP_E1001_WT|HIRE|2026/01/05||1|Y|E-AKP1001|E-AKP1001|ACTIVE_PROCESS|Employee|<Your BU>|Y|AKP_JOB_DA|AKP_LOC_CHN|<Your Department>
+MERGE|Assignment|AKP_LAB|AKP_E1002_ASG|AKP_E1002_WT|HIRE|2026/02/02||1|Y|E-AKP1002|E-AKP1002|ACTIVE_PROCESS|Employee|<Your BU>|Y|AKP_JOB_DA|AKP_LOC_CHN|<Your Department>
