@@ -1,8 +1,5 @@
 # HCM Extract From Design to Delivered File
 ### Submit, Scheduling, BI Publisher Report & Bursting
-
-> Simple-English guide for freshers. Read the diagram first, then each step.
-
 ---
 
 ## 1. The full picture in one diagram
