@@ -1,8 +1,6 @@
 # 🛡️ The Gatekeeper's Handbook
 ### Oracle Fusion Cloud Security: from basics to interview scenarios (HCM + Financials + BI)
 
-> **How to use this guide:** Read sections 1–8 for the fundamentals. Sections 9–11 cover BI security. Section 12 is a troubleshooting playbook, sections 13–14 are interview Q&A, and section 15 is your 60-second pitch.
-> If you understand **what each layer controls** and **which object controls it**, you can reason your way through almost any scenario.
 
 ---
 
